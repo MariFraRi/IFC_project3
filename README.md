@@ -80,7 +80,9 @@ Desde el contenedor o tu terminal local, ejecutar:
 ```bash
 python cargar_postgres.py
 ```
+
 Hay un ligero cambio cuando se quiere desplegar con docker local y en railway en la manera en como lee los datos, pues render usa su propio environment de postgres.
+
 ---
 
 ## 📷 Capturas

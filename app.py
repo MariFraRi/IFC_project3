@@ -310,5 +310,6 @@ def actualizar_fig_pais(orden):
     return fig
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run_server(debug=True, host='0.0.0.0', port=8050)
+
 

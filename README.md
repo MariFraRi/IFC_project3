@@ -1,6 +1,9 @@
 # 📊 Dashboard de Inversiones IFC – Entregable #3
+
 **Autor:** Mariana Franco & Samuel Bermudez
+
 **Fecha:** Mayo 2025
+
 **Link de render:** https://ifc-project3.onrender.com
 
 

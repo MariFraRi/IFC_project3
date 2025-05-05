@@ -1,4 +1,8 @@
 # 📊 Dashboard de Inversiones IFC – Entregable #3
+**Autor:** Mariana Franco & Samuel Bermudez
+**Fecha:** Mayo 2025
+**Link de render:** https://ifc-project3.onrender.com
+
 
 Este proyecto consiste en el desarrollo de un Dashboard interactivo utilizando **Dash** (Python) y una base de datos **PostgreSQL** para el análisis y visualización de datos de inversiones del IFC. El objetivo es realizar un análisis exploratorio y visualización de resultados de forma dinámica, con un despliegue empaquetado en **Docker**.
 
@@ -65,24 +69,6 @@ Este proyecto consiste en el desarrollo de un Dashboard interactivo utilizando *
 
 ---
 
-## 🚀 Instrucciones de Ejecución
-
-### 1. Clonar el repositorio
-
-```bash
-git clone <REPO_URL>
-cd <nombre-del-proyecto>
-```
-
-### 2. Construir y levantar los servicios
-
-```bash
-docker-compose up --build
-```
-
-Esto desplegará:
-- Un contenedor PostgreSQL en `localhost:5432`
-- Un dashboard accesible en `http://localhost:8050`
 
 ### 3. Cargar los datos
 
@@ -91,7 +77,7 @@ Desde el contenedor o tu terminal local, ejecutar:
 ```bash
 python cargar_postgres.py
 ```
-
+Hay un ligero cambio cuando se quiere desplegar con docker local y en railway en la manera en como lee los datos, pues render usa su propio environment de postgres.
 ---
 
 ## 📷 Capturas
@@ -118,6 +104,3 @@ Se incluye el directorio `/capturas` con imágenes del funcionamiento del dashbo
   - [Scikit-Learn](https://www.datacamp.com/es/blog/category/machine-learning)
 
 ---
-
-**Autor:** _Tu Nombre_  
-**Fecha:** Mayo 2025

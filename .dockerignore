@@ -1,0 +1,8 @@
+# Ignorar archivos y carpetas innecesarios
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.log
+*.env

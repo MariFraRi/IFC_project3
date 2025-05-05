@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_ifc
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: clave123
+      POSTGRES_DB: proyecto_personal
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  dash_app:
+    build: .
+    container_name: dash_ifc
+    depends_on:
+      - db
+    ports:
+      - "8050:8050"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=clave123
+      - DB_NAME=proyecto_personal
+    volumes:
+      - .:/app  # ✅ Esto monta tus archivos al contenedor
+
+volumes:
+  db_data:

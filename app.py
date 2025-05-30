@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 import consultas_postgres as consulta
+from sklearn.ensemble import RandomForestRegressor
 
 # Obtener todos los datos
 df_base = consulta.obtener_datos_base().rename(columns={

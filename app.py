@@ -39,7 +39,7 @@ table = dash_table.DataTable(
     style_table={'overflowX': 'auto'}
 )
 
-def construir_modelo_regresion(df):
+def construir_modelo_random_forest(df):
     columnas = [
         'inversion_ifc_gestion_riesgo_millones_usd',
         'inversion_ifc_garantia_millones_usd',
@@ -51,6 +51,7 @@ def construir_modelo_regresion(df):
     ]
     df_modelo = df[columnas].dropna()
 
+    # Variables categóricas a dummies
     X_cat = pd.get_dummies(df_modelo[['industria', 'categoria_ambiental']], drop_first=True)
     X_num = df_modelo[[
         'inversion_ifc_gestion_riesgo_millones_usd',
@@ -61,30 +62,37 @@ def construir_modelo_regresion(df):
     X = pd.concat([X_num, X_cat], axis=1)
     y = df_modelo['Inversión Aprobada (millones USD)']
 
+    # División en entrenamiento y prueba
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model = LinearRegression()
+
+    # Modelo Random Forest
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
 
+    # Métricas
     r2 = r2_score(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+
+    # Importancia de variables
     coef_df = pd.DataFrame({
         'Variable': X.columns,
-        'Coeficiente': model.coef_
-    }).sort_values(by='Coeficiente', ascending=False)
+        'Importancia': model.feature_importances_
+    }).sort_values(by='Importancia', ascending=False)
 
-    coef_df['Signo'] = coef_df['Coeficiente'].apply(lambda x: 'Positivo' if x >= 0 else 'Negativo')
-    fig_modelo = px.bar(coef_df, x='Coeficiente', y='Variable', orientation='h',
-                        color='Signo', color_discrete_map={'Positivo': 'green', 'Negativo': 'crimson'},
-                        title="Importancia y dirección de los coeficientes del modelo",
+    fig_modelo = px.bar(coef_df, x='Importancia', y='Variable', orientation='h',
+                        color='Importancia', color_continuous_scale='Viridis',
+                        title="Importancia de las variables (Random Forest)",
                         height=600)
     fig_modelo.update_layout(yaxis={'categoryorder': 'total ascending'})
 
+    # Gráfico Real vs Predicho
     fig_real_vs_pred = go.Figure()
     fig_real_vs_pred.add_trace(go.Scatter(x=y_test, y=y_pred, mode='markers', name='Predicciones', marker=dict(color='blue')))
     fig_real_vs_pred.add_trace(go.Scatter(x=y_test, y=y_test, mode='lines', name='Ideal', line=dict(color='black', dash='dash')))
     fig_real_vs_pred.update_layout(title="Predicciones vs Valores Reales", height=600)
 
+    # Análisis de errores
     errores = y_test - y_pred
     fig_errores = make_subplots(rows=1, cols=2, subplot_titles=("Distribución de los errores", "Errores vs Predicción"))
     fig_errores.add_trace(go.Histogram(x=errores, nbinsx=30, marker_color='indianred'), row=1, col=1)
@@ -92,63 +100,91 @@ def construir_modelo_regresion(df):
     fig_errores.add_trace(go.Scatter(x=y_pred, y=[0]*len(y_pred), mode='lines', line=dict(color='black', dash='dot')), row=1, col=2)
     fig_errores.update_layout(height=600)
 
+    # Indicadores del modelo
     indicadores = html.Div([
-        html.H5("Indicadores del Modelo", className="mt-3"),
+        html.H5("Indicadores del Modelo Random Forest", className="mt-3"),
         html.P(f"R²: {r2:.4f}"),
         html.P(f"RMSE: {rmse:.4f} millones USD")
     ])
 
     return dcc.Graph(figure=fig_modelo), dcc.Graph(figure=fig_real_vs_pred), dcc.Graph(figure=fig_errores), indicadores
 
-grafico_modelo, grafico_modelo2, grafico_errores, indicadores_modelo = construir_modelo_regresion(df_base)
+# Uso
+grafico_modelo, grafico_modelo2, grafico_errores, indicadores_modelo = construir_modelo_random_forest(df_base)
 
+titulo_dashboard = "Tablero Interactivo de Proyectos de Inversión IFC"
+
+descripcion = """
+Este tablero interactivo tiene como objetivo analizar las tendencias globales de los proyectos de servicios de inversión impulsados por la Corporación Financiera Internacional (IFC, por sus siglas en inglés). La base de datos utilizada incluye información detallada de inversiones realizadas en más de 100 países y regiones, abarcando todos los continentes. A través de esta herramienta se facilita la visualización y comprensión de los patrones de inversión del IFC, con énfasis en sectores económicos, montos de financiamiento, productos financieros utilizados (como préstamos o capital accionario) y estados de avance de los proyectos.
+El tablero permite además filtrar la información por categoría ambiental, país o región, tipo de industria, entre otros factores clave. Esto brinda una visión integral de cómo la IFC contribuye al desarrollo económico global mediante el fortalecimiento del sector privado. Este análisis es especialmente relevante para evaluar las estrategias de financiamiento sostenible y su impacto en países en desarrollo o economías emergentes.
+"""
+
+contexto = """
+La Corporación Financiera Internacional (IFC) es una institución miembro del Grupo Banco Mundial cuya misión es promover el desarrollo del sector privado en economías en desarrollo a través de inversiones estratégicas. En este contexto, el tablero presenta una visión consolidada de proyectos financiados por el IFC en distintas regiones del mundo, incluyendo América Latina, África, Asia, Europa del Este y Oceanía.
+Los datos muestran cómo el IFC ha canalizado recursos hacia sectores clave como instituciones financieras, manufactura, infraestructura, salud, educación, agroindustria y tecnologías de la información. Estos sectores han sido identificados como motores esenciales para el crecimiento sostenible y la reducción de la pobreza. La amplitud geográfica y sectorial de los datos evidencia un enfoque integral del IFC hacia el desarrollo inclusivo. Este tablero proporciona una oportunidad para comprender mejor las dinámicas globales de inversión del IFC, así como su alineación con los Objetivos de Desarrollo Sostenible (ODS) de las Naciones Unidas.
+"""
+
+planteamiento_problema = """
+A pesar del volumen de información disponible sobre los proyectos del IFC, esta suele encontrarse dispersa y poco accesible para análisis comparativos o visuales. La ausencia de una plataforma unificada que permita explorar de manera interactiva la distribución, características y evolución de estos proyectos representa una barrera para investigadores, formuladores de políticas y actores del sector privado interesados en conocer las prioridades de inversión del IFC.
+El problema específico que aborda este tablero es la dificultad para comprender la magnitud y el alcance de las inversiones del IFC a nivel global, tanto en términos de sectores económicos como de impacto geográfico, tipo de financiamiento y consideraciones ambientales. Sin una herramienta de análisis adecuada, es complejo identificar patrones de inversión, evaluar el cumplimiento de metas de desarrollo o detectar oportunidades de mejora. Este tablero busca resolver esta necesidad, organizando y visualizando los datos de forma clara, dinámica y orientada a la toma de decisiones informadas.
+"""
+
+objetivos_justificacion = """
+El objetivo general de este proyecto es diseñar y desarrollar un tablero interactivo que permita visualizar y analizar las inversiones de la Corporación Financiera Internacional (IFC) en distintos países y sectores del mundo.
+Entre los objetivos específicos se incluyen:
+Facilitar la exploración por industria, país, estado del proyecto y categoría ambiental.
+Permitir comparaciones regionales o sectoriales en cuanto al volumen de inversión.
+Ofrecer una herramienta didáctica y analítica que apoye la comprensión de las estrategias de financiamiento internacional.
+La justificación de este tablero radica en la importancia de contar con una visualización clara y accesible de los datos de inversión del IFC, lo cual contribuye a la transparencia, la rendición de cuentas y el análisis estratégico. Además, al integrar múltiples variables en un solo entorno visual, se mejora la capacidad para identificar tendencias, detectar vacíos de inversión y analizar el impacto potencial en términos de desarrollo sostenible a nivel global.
+"""
+
+marco_teorico = """
+Este estudio se fundamenta en teorías relacionadas con la inversión extranjera directa (IED), el financiamiento para el desarrollo y la sostenibilidad. La IFC, como brazo del Grupo Banco Mundial orientado al sector privado, actúa como catalizador del crecimiento económico mediante inversiones que buscan no solo retorno financiero, sino también impacto social y ambiental positivo.
+Desde el enfoque de la teoría del desarrollo endógeno, estas inversiones permiten compensar fallas estructurales en países en desarrollo, facilitando el acceso a financiamiento, tecnologías y mejores prácticas de gestión. Además, se consideran los principios de inversión responsable y los estándares ambientales, sociales y de gobernanza (ESG), que guían la actuación del IFC. En este marco, la categoría ambiental de cada proyecto adquiere especial relevancia. Asimismo, la diversidad de productos financieros utilizados (préstamos, capital, garantías) puede analizarse a la luz de la ingeniería financiera para el desarrollo. Este conjunto teórico justifica la importancia de explorar y evaluar los proyectos de inversión del IFC desde una perspectiva multidimensional.
+"""
+
+metodologia = """
+Para la construcción del tablero interactivo, se utilizó una base de datos obtenida del portal de transparencia del IFC, que incluye información detallada de proyectos de inversión a nivel mundial. Se realizó un proceso de depuración de datos para eliminar registros incompletos y normalizar las categorías de variables como países, industrias, productos financieros y estados del proyecto.
+El tratamiento de datos se llevó a cabo en Python, utilizando bibliotecas como Pandas para manipulación tabular y Dash para el desarrollo del entorno interactivo. Se diseñaron distintos paneles de análisis que permiten al usuario explorar las inversiones mediante filtros como industria, tipo de producto, estado del proyecto y categoría ambiental. Los gráficos incluyen visualizaciones de barras, líneas y tablas dinámicas.
+La metodología también contempló principios de usabilidad y claridad visual, con el fin de facilitar la interpretación de resultados. Este enfoque permite una exploración flexible de la base de datos, ofreciendo tanto análisis generales como consultas específicas de interés para múltiples públicos.
+"""
 # Layout
 app.layout = dbc.Container([
-    html.H1(" Tendencias y Evolución de los Proyectos de Servicios de Inversión del IFC", className="text-center mt-4 mb-4"),
+    html.H1(titulo_dashboard, className="text-center mt-4 mb-4"),
     dcc.Tabs([
         dcc.Tab(label='1.Introducción', children=[
             html.Div([
-                html.P("Este dashboard presenta un análisis de los proyectos de inversión del IFC, "
-                       "incluyendo la distribución de inversiones por industria y categoría ambiental, "
-                       "así como un modelo predictivo para estimar la inversión total aprobada.")
+                html.P(descripcion)
             ], style={'padding': '20px'})
         ]),
         
         dcc.Tab(label='2. Contexto', children=[
             html.Div([
-                html.P("El IFC (International Finance Corporation) es una institución del Grupo Banco Mundial "
-                       "que se dedica a promover el desarrollo económico sostenible mediante la inversión en el sector privado.")
+                html.P(contexto)
             ], style={'padding': '20px'})
         ]),
         
         dcc.Tab(label='3. Planteamiento del Problema', children=[
             html.Div([
-                html.P("El objetivo de este análisis es entender las tendencias y patrones en los proyectos de inversión del IFC, "
-                       "así como desarrollar un modelo predictivo que permita estimar la inversión total aprobada en función de diversas variables.")
-                
+                html.P(planteamiento_problema)  
         ])
         ]),
         
         dcc.Tab(label='4. Objetivos y Justificación', children=[
             html.Div([
-                html.P("El objetivo principal es proporcionar una herramienta que permita a los tomadores de decisiones del IFC "
-                       "evaluar y predecir la inversión total aprobada en función de diferentes variables, "
-                       "lo que puede ayudar en la planificación y asignación de recursos.")
+                html.P(objetivos_justificacion)
             ], style={'padding': '20px'})
         ]),
         
         dcc.Tab(label='5. Marcto Teórico', children=[
             html.Div([
-                html.P("El análisis de datos y la modelización predictiva son herramientas clave en la toma de decisiones informadas. "
-                       "El uso de modelos de regresión lineal permite entender la relación entre variables y hacer predicciones basadas en datos históricos.")
-                
+                html.P(marco_teorico)    
             ], style={'padding': '20px'})
         ]),
         
         dcc.Tab(label='6. Metodología', children=[
             html.Div([
-                html.P("La metodología utilizada incluye la limpieza y preparación de datos, "
-                       "el análisis exploratorio de datos y la construcción de un modelo de regresión lineal. ")
+                html.P(metodologia)
             ], style={'padding': '20px'})
         ]),
         

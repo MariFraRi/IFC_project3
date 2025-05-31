@@ -149,6 +149,12 @@ Para la construcción del tablero interactivo, se utilizó una base de datos obt
 El tratamiento de datos se llevó a cabo en Python, utilizando bibliotecas como Pandas para manipulación tabular y Dash para el desarrollo del entorno interactivo. Se diseñaron distintos paneles de análisis que permiten al usuario explorar las inversiones mediante filtros como industria, tipo de producto, estado del proyecto y categoría ambiental. Los gráficos incluyen visualizaciones de barras, líneas y tablas dinámicas.
 La metodología también contempló principios de usabilidad y claridad visual, con el fin de facilitar la interpretación de resultados. Este enfoque permite una exploración flexible de la base de datos, ofreciendo tanto análisis generales como consultas específicas de interés para múltiples públicos.
 """
+conclusiones = """
+Los resultados del modelo de importancia de variables indican que los factores más determinantes para explicar las inversiones del IFC están relacionados directamente con los montos financieros involucrados, en particular: inversion_ifc_prestamo_millones_usd, inversion_ifc_garantia_millones_usd y inversion_ifc_capital_millones_usd. Estas variables tienen una importancia conjunta superior al 90%, lo que evidencia que los instrumentos financieros utilizados (préstamo, garantía y capital) son el principal motor explicativo en los proyectos analizados. Por el contrario, variables como el tipo de industria o la categoría ambiental tienen un peso marginal en la predicción, lo cual puede interpretarse como una oportunidad para profundizar en el análisis cualitativo de impacto.
+
+El gráfico de predicciones vs. valores reales muestra un buen ajuste general del modelo, con una nube de puntos ajustada a la diagonal ideal. Esto valida la capacidad predictiva del modelo para capturar las dinámicas de inversión del IFC, con algunos valores atípicos que podrían deberse a proyectos con montos excepcionalmente altos o características particulares que no se replican con frecuencia.
+"""
+
 # Layout
 app.layout = dbc.Container([
     html.H1(titulo_dashboard, className="text-center mt-4 mb-4"),
@@ -267,8 +273,7 @@ app.layout = dbc.Container([
         
         dcc.Tab(label='8. Conclusiones', children=[
             html.Div([
-                html.P("El análisis revela patrones interesantes en la inversión del IFC, "
-                       "y el modelo predictivo proporciona una herramienta valiosa para estimar la inversión total aprobada.")
+                html.P(conclusiones)
             ], style={'padding': '20px'})
         ])    
     ]),

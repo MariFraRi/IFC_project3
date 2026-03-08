@@ -1,4 +1,4 @@
-# 📊 Dashboard de Inversiones IFC – Entregable #3
+# 📊 Dashboard de Inversiones IFC
 
 **Autor:** Mariana Franco & Samuel Bermudez
 
